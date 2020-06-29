@@ -29,6 +29,7 @@ namespace Client
         int count;//đẽm số User
         vitri[,] hai = new vitri[21, 21];// luu 
         private Bitmap bmpbanco = new Bitmap("..//..//caro.jpg");
+        private Bitmap bmpava = new Bitmap("..//..//ava.jpg");
         public Bitmap bmpx = new Bitmap("..//..//x.jpg");
         public Bitmap bmpo = new Bitmap("..//..//o.jpg");
         public Bitmap bmpxvang = new Bitmap("..//..//xvang.jpg");
@@ -37,8 +38,8 @@ namespace Client
         int h, c;//toa do quan vua duco dánh
         int h1, c1;//Luu vi trí quan doi thu vua di
         int flags; // sẻ ve quân nào lên bàn cờ 1=x,2=0
-        int winm;// mình các thắng không 1=thắng ,0=không dùng để gởi cho đối thủ
-        int winho; // đối thủ có thắng không 1=thắng , 0=không đối thủ gởi cho mình
+        int winm;// mình các thắng không? 1=thắng ,0=không dùng để gởi cho đối thủ
+        int winho; // đối thủ có thắng không? 1=thắng , 0=không đối thủ gởi cho mình
         Boolean luot = false;// lượt ai đi False= đối thủ, true= mình
         string Doithuhientai;// tên đối thủ hiện tại
         int tralaiTextdoithu;//biến dùng quản lý CaroText 1=mở; 0=khóa
@@ -88,7 +89,7 @@ namespace Client
             TG.Visible = false;
 
             
-        }// khoi tao ban cờ
+        }// khởi tạo ban cờ
 
         private void DoNothingInCallBack(IAsyncResult Res) { }
 
@@ -99,16 +100,16 @@ namespace Client
         delegate void DelegateSendMessageToServer(String Sender, String MsgCont);// gỏi Mesage đến Server
         delegate void DelegateSendValuePrivate(String Sender, String Receiver, int type, int x, int y, int who, String Msg);// gỏi data đến Server- Sever gởi lại cho Peceiver
         //Type kiem tra loai tin goi di
-        //0= chat
-        //1=caro
-        //2=tra loi ko tim ra nguoi chat
-        //3 goi yeu cau danh caro
-        //4 tra loi~ ko tin ra nguoi danh caro
-        //5 thong tin goi ve nguoi khac khong chap nhan danh 
+        //0 chat
+        //1 caro
+        //2 ko tìm ra người chat
+        //3 gửi yêu cầu chơi caro
+        //4 trả lời ko tìm ra người đánh caro
+        //5 thông tin gửi về người khác không chấp nhận đánh
         //6 nhận thông tin Usename từ sever
-        //7 thong tin sever goi di toan các Client
-        //8 thnog tin doi thu thau do het h
-        //9 tra lai thong tin la da nhan duoc thong tin type==8
+        //7 thông tin sever gửi di toàn các Client
+        //8 thông tin đối thủ thua do hết thời gian
+        //9 trả lại thông tin là đã nhận được thông tin type==8
         private void CaroValueReceivedHandler(String Sender, int type, int x, int y, int who, String Msg)
         {
             if (type == 1 && Doithuhientai.Equals(Sender))
@@ -126,11 +127,11 @@ namespace Client
             }
             if (type == 2)
             {
-                MessageBox.Show("Erro!không thể chát với :" + Msg);
+                MessageBox.Show(" Lỗi! Không thể chat với : " + Msg);
             }
             if (type == 3)
             {
-                if (MessageBox.Show(Sender + " Muốn chơi Game với bạn ", "Ok", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show(Sender + " muốn chơi Game với bạn ", "Ok", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     //chap nhan danh'
                     Doithuhientai = Sender;
@@ -142,7 +143,7 @@ namespace Client
                     TG1 = 120;//set Tg =120s;
                 }
                 else
-                { //tu choi dánh
+                { //từ chối dánh
                     DelegateSendValuePrivate dsmts = new DelegateSendValuePrivate(obj.SendValuePrivate);
                     dsmts.BeginInvoke(Username, Sender, 4, 0, 0, winm, null, new AsyncCallback(DoNothingInCallBack), null);
                 }
@@ -154,7 +155,7 @@ namespace Client
             }
             if (type == 5)
             {
-                MessageBox.Show("không thể kết nối với : " + Msg);
+                MessageBox.Show("Không thể kết nối với : " + Msg);
                 tralaiTextdoithu = 1;
             }
             if (type == 6)
@@ -180,12 +181,12 @@ namespace Client
             }
             if (type == 7)
             {
-                AddTextToChatDisplay(Sender + "Đã đánh bại " + Msg);
+                AddTextToChatDisplay(Sender + " đã đánh bại " + Msg);
                 
             }
             if (type == 8)
             {
-                MessageBox.Show("Đã thắng do đối thủ hết h. Click để đánh ván khác");
+                MessageBox.Show("Đã thắng do đối thủ hết thời gian. Click để đánh ván khác");
                 winho = who;
                 luot = true;
                
@@ -207,11 +208,11 @@ namespace Client
         {
             if (txtChatInput.Text != null && txtChatInput.Text.Length > 0)
             {
-                AddTextToChatDisplay(Username + ": " + txtChatInput.Text);
+                AddTextToChatDisplay(Username + " : " + txtChatInput.Text);
 
-                if (txtChatWith.Text.Equals("_SERVER", StringComparison.CurrentCultureIgnoreCase))
+                if (txtChatWith.Text.Equals("_SERVER", StringComparison.CurrentCultureIgnoreCase))//hàm liệt kê
                 {
-                    //obj.SendMessageToServer(Username, txtChatInput.Text);
+                    obj.SendMessageToServer(Username, txtChatInput.Text);
                     
                 }
                 else
@@ -249,13 +250,13 @@ namespace Client
             this.btnSend.BackColor = System.Drawing.Color.Ivory;
             //tra btSend ve mau trang 
         }
-        delegate void AddTextToDisplayDelegate(String Cont);
+        delegate void AddTextToDisplayDelegate(String Cont);// gọi phương thức bất kì đâu
         private void AddTextToChatDisplay(String Cont)
         {
-            if (this.InvokeRequired)
+            if (this.InvokeRequired)//cho biết có yêu cầu Invoke ko
             {
                 AddTextToDisplayDelegate d = new AddTextToDisplayDelegate(AddTextToChatDisplay);
-                this.Invoke(d, Cont);
+                this.Invoke(d, Cont);//chỉ cho phép thread được truy cập
             }
             else
             {
@@ -265,10 +266,8 @@ namespace Client
 
         private void FormChat_Load(object sender, EventArgs e)
         {
-
             banco.Image = bmpbanco;
-           
-
+            ava.Image = bmpava;
         }
 
         private void banco_OnMouseClick(object sender, MouseEventArgs e)
@@ -318,7 +317,7 @@ namespace Client
                     }
                     else
                     {
-                        MessageBox.Show("U Lose Play again OK!");
+                        MessageBox.Show("Bạn đã thua, Play again OK!");
 
                         diemdt++;
                         label6.Text = diemm.ToString();
@@ -499,7 +498,7 @@ namespace Client
             {
                 if (checkluot == xhayo)
                 {
-                    MessageBox.Show(Username + " thang");
+                    MessageBox.Show(Username + " Thắng");
                     DelegateSendMessageToServer dsmts = new DelegateSendMessageToServer(obj.SendMessageToServer);
                     dsmts.BeginInvoke(Username,Doithuhientai, new AsyncCallback(DoNothingInCallBack), null);
                     diemm++;
@@ -511,7 +510,7 @@ namespace Client
                 }
                 else
                 {
-                    MessageBox.Show(Doithuhientai + " thang");
+                    MessageBox.Show(Doithuhientai + " Thắng");
                     diemdt = 2;
                     xhayo = 1;
                     reset();
@@ -554,7 +553,7 @@ namespace Client
             {
                 if (checkluot == xhayo)
                 {
-                    MessageBox.Show(Username + " thang");
+                    MessageBox.Show(Username + " Thắng");
                     DelegateSendMessageToServer dsmts = new DelegateSendMessageToServer(obj.SendMessageToServer);
                     dsmts.BeginInvoke(Username, Doithuhientai, new AsyncCallback(DoNothingInCallBack), null);
                     diemm++;
@@ -566,7 +565,7 @@ namespace Client
                 }
                 else
                 {
-                    MessageBox.Show(Doithuhientai + " thang");
+                    MessageBox.Show(Doithuhientai + " Thắng");
                     diemdt = 2;
                     xhayo = 1;
                     reset();
@@ -623,7 +622,7 @@ namespace Client
 
                 if (checkluot == xhayo)
                 {
-                    MessageBox.Show(Username + " thang");
+                    MessageBox.Show(Username + " Thắng");
                     DelegateSendMessageToServer dsmts = new DelegateSendMessageToServer(obj.SendMessageToServer);
                     dsmts.BeginInvoke(Username, Doithuhientai, new AsyncCallback(DoNothingInCallBack), null);
                     diemm++;
@@ -635,7 +634,7 @@ namespace Client
                 }
                 else
                 {
-                    MessageBox.Show(Doithuhientai + " thang");
+                    MessageBox.Show(Doithuhientai + " Thắng");
                     diemdt = 2;
                     xhayo = 1;
                     reset();
@@ -691,7 +690,7 @@ namespace Client
 
                 if (checkluot == xhayo)
                 {
-                    MessageBox.Show(Username + " thang");
+                    MessageBox.Show(Username + " Thắng");
                     DelegateSendMessageToServer dsmts = new DelegateSendMessageToServer(obj.SendMessageToServer);
                     dsmts.BeginInvoke(Username, Doithuhientai, new AsyncCallback(DoNothingInCallBack), null);
                     diemm++;
@@ -703,7 +702,7 @@ namespace Client
                 }
                 else
                 {
-                    MessageBox.Show(Doithuhientai + " thang");
+                    MessageBox.Show(Doithuhientai + " Thắng");
                     diemdt = 2;
                     xhayo = 1;
                     reset();
@@ -712,12 +711,6 @@ namespace Client
                 }
             }
         }
-
-        private void TG_Click(object sender, EventArgs e)
-        {
-
-        }
-
         void reset()//bat dau vong choi #
         {
             for (int i = 0; i <= 20; i++)
@@ -757,7 +750,7 @@ namespace Client
             }
             if (TG1 < 30)
             {
-                TG.ForeColor = System.Drawing.Color.Yellow;
+                TG.ForeColor = System.Drawing.Color.Red;
             }
             if (TG1 == 0&&k!=0)
             {
@@ -765,7 +758,7 @@ namespace Client
                 {
                     DelegateSendValuePrivate dsmts = new DelegateSendValuePrivate(obj.SendValuePrivate);
                     dsmts.BeginInvoke(Username, Doithuhientai, 8, 0, 0, 2, null, new AsyncCallback(DoNothingInCallBack), null);
-                    MessageBox.Show("Hết H thua rồi");
+                    MessageBox.Show("Hết thời gian, bạn thua rồi");
                     diemdt++;
                     xhayo = 1;
                     reset();
